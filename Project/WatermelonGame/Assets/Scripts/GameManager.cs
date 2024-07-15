@@ -58,6 +58,21 @@ public class GameManager : MonoBehaviour
 
     public void SpawnAndReloadFruit(Vector3 worldPosition)
     {
+        switch (currentFruitType)
+        {
+            case FruitType.Cherry:
+                worldPosition = new Vector3(Mathf.Clamp(worldPosition.x, -2.28f, 2.28f), 2.5f, 0);
+                break;
+
+            case FruitType.Strawberry:
+                worldPosition = new Vector3(Mathf.Clamp(worldPosition.x, -2.16f, 2.16f), 2.5f, 0);
+                break;
+
+            case FruitType.Grape:
+                worldPosition = new Vector3(Mathf.Clamp(worldPosition.x, -2.00f, 2.00f), 2.5f, 0);
+                break;
+        }
+
         SpawnFruit(currentFruitType, worldPosition);
 
         currentFruitType = nextFruitType;
