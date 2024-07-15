@@ -10,6 +10,8 @@ using UnityEngine.UI;
 // Project
 // Alias
 
+// https://suika-game.app/ko
+// https://namu.wiki/w/%EC%88%98%EB%B0%95%EA%B2%8C%EC%9E%84
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance = null;
@@ -33,14 +35,14 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
+        Screen.fullScreenMode = FullScreenMode.Windowed;
+        Screen.SetResolution(576, 1024, false);
     }
 
     private void Start()
     {
-        currentFruitType = GetRandomDefaultFruitType();
-        nextFruitType = GetRandomDefaultFruitType();
-
-        InvalidateCurrentNextFruitUI();
+        ResetGame();
     }
 
     private void Update()
@@ -49,11 +51,11 @@ public class GameManager : MonoBehaviour
         {
             Vector2 mousePosition = Input.mousePosition;
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
-            worldPosition.y = 2.50f;
-            worldPosition.z = 0.00f;
 
             SpawnAndReloadFruit(worldPosition);
         }
+
+        txt_score.text = waterMelonScore.ToString();
     }
 
     public void SpawnAndReloadFruit(Vector3 worldPosition)
@@ -86,6 +88,17 @@ public class GameManager : MonoBehaviour
         //FruitType nextType = (FruitType) (((int)fruitType) + 1);
         FruitType nextType = fruitType.GetNextEnumType();
         SpawnFruit(nextType, worldPosition);
+    }
+
+    public void ResetGame()
+    {
+        waterMelonScore = 0;
+
+        spawnedIndex = 0;
+        currentFruitType = GetRandomDefaultFruitType();
+        nextFruitType = GetRandomDefaultFruitType();
+
+        InvalidateCurrentNextFruitUI();
     }
 
     private void InvalidateCurrentNextFruitUI()
