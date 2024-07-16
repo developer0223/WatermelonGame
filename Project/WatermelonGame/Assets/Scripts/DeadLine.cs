@@ -10,7 +10,7 @@ using UnityEngine.UI;
 // Project
 // Alias
 
-public class DeadlLine : MonoBehaviour
+public class DeadLine : MonoBehaviour
 {
     private float gameOverTime = 3.0f;
 
