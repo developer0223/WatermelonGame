@@ -138,8 +138,6 @@ public class GameManager : MonoBehaviour
 
     public void ResetGame()
     {
-        
-
         for (int i = fruitParentTransform.childCount - 1; i >= 0; i--)
         {
             Destroy(fruitParentTransform.GetChild(i).gameObject);
