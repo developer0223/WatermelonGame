@@ -27,10 +27,22 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Image img_next_fruit = null;
     [SerializeField] private Text txt_score = null;
 
+    [Header("Popup")]
+    [SerializeField] private GameObject gameOverPopup = null;
 
+    [Header("Prefabs")]
     [SerializeField] private List<Sprite> fruitSpriteList = new List<Sprite>();
     [SerializeField] private List<GameObject> fruitPrefabList = new List<GameObject>();
     [SerializeField] private List<GameObject> defaultSpawnFruitsPrefabList = new List<GameObject>();
+
+    [Header("Fruit Parent")]
+    [SerializeField] private Transform fruitParentTransform = null;
+
+    // public variables
+    public bool isGameOver = false;
+
+    // private variables
+    private bool isSpawnable = true;
 
     private void Awake()
     {
@@ -47,15 +59,22 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonUp(0))
+        if (isSpawnable && !isGameOver && Input.GetMouseButtonUp(0))
         {
             Vector2 mousePosition = Input.mousePosition;
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
 
             SpawnAndReloadFruit(worldPosition);
-        }
 
-        txt_score.text = waterMelonScore.ToString();
+            StartCoroutine(SetNegativeSpawnableForSeconeds(1.0f));
+        }
+    }
+
+    private IEnumerator SetNegativeSpawnableForSeconeds(float seconds)
+    {
+        isSpawnable = false;
+        yield return new WaitForSeconds(seconds);
+        isSpawnable = true;
     }
 
     public void SpawnAndReloadFruit(Vector3 worldPosition)
@@ -85,13 +104,47 @@ public class GameManager : MonoBehaviour
 
     public void SpawnNextFruit(FruitType fruitType, Vector3 worldPosition)
     {
-        //FruitType nextType = (FruitType) (((int)fruitType) + 1);
+        switch (fruitType)
+        {
+            case FruitType.Cherry:
+                AddScore(1);
+                break;
+
+            case FruitType.Strawberry:
+                AddScore(3);
+                break;
+
+            default:
+                int fruitScore = (int)fruitType + 1;
+                int addSumScore = fruitScore * (fruitScore + 1) / 2;
+                AddScore(addSumScore);
+                break;
+        }
+
         FruitType nextType = fruitType.GetNextEnumType();
         SpawnFruit(nextType, worldPosition);
     }
 
+    public void GameOver()
+    {
+        if (isGameOver)
+            return;
+
+        isGameOver = true;
+        isSpawnable = false;
+
+        gameOverPopup.gameObject.SetActive(true);
+    }
+
     public void ResetGame()
     {
+        
+
+        for (int i = fruitParentTransform.childCount - 1; i >= 0; i--)
+        {
+            Destroy(fruitParentTransform.GetChild(i).gameObject);
+        }
+
         waterMelonScore = 0;
 
         spawnedIndex = 0;
@@ -99,6 +152,12 @@ public class GameManager : MonoBehaviour
         nextFruitType = GetRandomDefaultFruitType();
 
         InvalidateCurrentNextFruitUI();
+        InvalidateScoreUI();
+
+        isGameOver = false;
+        StartCoroutine(SetNegativeSpawnableForSeconeds(1.0f));
+
+        gameOverPopup.gameObject.SetActive(false);
     }
 
     private void InvalidateCurrentNextFruitUI()
@@ -107,9 +166,22 @@ public class GameManager : MonoBehaviour
         img_next_fruit.sprite = GetFruitSpriteWithType(nextFruitType);
     }
 
+    private void AddScore(int score)
+    {
+        this.waterMelonScore += score;
+        InvalidateScoreUI();
+    }
+
+    private void InvalidateScoreUI()
+    {
+        txt_score.text = waterMelonScore.ToString();
+    }
+
     private Fruit SpawnFruit(FruitType fruitType, Vector3 worldPosition)
     {
         GameObject prefab = Instantiate(GetFruitPrefabWithType(fruitType), worldPosition, Quaternion.identity);
+        prefab.transform.SetParent(fruitParentTransform);
+
         Fruit script = prefab.GetComponent<Fruit>();
         script.spawnedIndex = spawnedIndex++;
 
@@ -151,7 +223,7 @@ public class GameManager : MonoBehaviour
     private FruitType GetRandomDefaultFruitType()
     {
         Array enumValues = Enum.GetValues(typeof(FruitType));
-        return (FruitType) enumValues.GetValue(UnityEngine.Random.Range(0, 2));
-        //return (FruitType) enumValues.GetValue(UnityEngine.Random.Range(0, enumValues.Length));
+        int randomIndex = UnityEngine.Random.Range(0, defaultSpawnFruitsPrefabList.Count - 1);
+        return (FruitType) enumValues.GetValue(randomIndex);
     }
 }
